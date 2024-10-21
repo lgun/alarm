@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.mybatis.coinstock">
+
+    <insert id="insertCoinStockUser">        
+        INSERT INTO coinstockuser
+				( userIdx
+                    , coinName
+                    , cdate
+                 )
+			VALUES ( #{userIdx}
+                    , #{coinName}
+                    , now()
+                 )
+    </insert>  
+    <select id="selectCoinStockUser" parameterType="Map" resultType="Map">
+        SELECT *
+        FROM coinstockuser
+        WHERE userIdx=#{userIdx} and coinName=#{coinName}
+        LIMIT 1
+    </select>
+    <select id="selectCoinStockUserList" parameterType="Map" resultType="Map">
+        SELECT *
+        FROM coinstockuser u inner join member m on u.userIdx=m.idx
+        WHERE 1=1
+        <if test="userIdx != null and userIdx != ''">
+            AND u.userIdx = #{userIdx}
+        </if>
+        <if test="partnerIdx != null and partnerIdx != ''">
+            AND m.parentsIdx = #{partnerIdx}
+        </if>
+        <if test="search != null and search != ''">
+            <if test="searchSelect == 'parentsIdx'">
+                AND m.${searchSelect} = #{search}
+                AND m.level = 'user'
+            </if>
+            <if test="searchSelect != 'parentsIdx'">
+                AND m.${searchSelect} LIKE CONCAT('%', #{search}, '%')
+            </if>
+        </if>
+        <if test="level != null and level != ''">
+            AND m.level = #{level}
+        </if>
+        <if test="test != 'test'">
+            AND m.isTest != 1
+        </if>
+        <if test="ban == 'ban'">
+            AND m.isBan = 1
+        </if>
+        LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+    </select>
+    <select id="selectCoinStockUserListCnt" parameterType="Map" resultType="Integer">
+        SELECT count(*)
+        FROM coinstockuser u inner join member m on u.userIdx=m.idx
+        WHERE 1=1
+        <if test="userIdx != null and userIdx != ''">
+            AND u.userIdx = #{userIdx}
+        </if>
+        <if test="partnerIdx != null and partnerIdx != ''">
+            AND m.parentsIdx = #{partnerIdx}
+        </if>
+        <if test="search != null and search != ''">
+            <if test="searchSelect == 'parentsIdx'">
+                AND m.${searchSelect} = #{search}
+                AND m.level = 'user'
+            </if>
+            <if test="searchSelect != 'parentsIdx'">
+                AND m.${searchSelect} LIKE CONCAT('%', #{search}, '%')
+            </if>
+        </if>
+        <if test="level != null and level != ''">
+            AND m.level = #{level}
+        </if>
+        <if test="test != 'test'">
+            AND m.isTest != 1
+        </if>
+        <if test="ban == 'ban'">
+            AND m.isBan = 1
+        </if>
+    </select>
+
+    <insert id="insertCoinStock">        
+        INSERT INTO coinstock
+				( userIdx
+                    , coinName
+                    , qty
+                    , lockupDate
+                    , inputDate
+                 )
+			VALUES ( #{userIdx}
+                    , #{coinName}
+                    , #{qty}
+                    , #{lockupDate}
+                    , now()
+                 )
+    </insert>  
+    <select id="selectCoinStockList" parameterType="Map" resultType="Map">
+        SELECT *
+        FROM coinstock u inner join member m on u.userIdx=m.idx
+        WHERE 1=1
+        <if test="userIdx != null and userIdx != ''">
+            AND u.userIdx = #{userIdx}
+        </if>
+        <if test="coinName != null and coinName != ''">
+            AND u.coinName = #{coinName}
+        </if>
+        <if test="partnerIdx != null and partnerIdx != ''">
+            AND m.parentsIdx = #{partnerIdx}
+        </if>
+        <if test="search != null and search != ''">
+            <if test="searchSelect == 'parentsIdx'">
+                AND m.${searchSelect} = #{search}
+                AND m.level = 'user'
+            </if>
+            <if test="searchSelect != 'parentsIdx'">
+                AND m.${searchSelect} LIKE CONCAT('%', #{search}, '%')
+            </if>
+        </if>
+        <if test="level != null and level != ''">
+            AND m.level = #{level}
+        </if>
+        <if test="ban == 'ban'">
+            AND m.isBan = 1
+        </if>
+        LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+    </select>
+    <select id="selectCoinStockListCnt" parameterType="Map" resultType="Integer">
+        SELECT count(*)
+        FROM coinstock u inner join member m on u.userIdx=m.idx
+        WHERE 1=1
+        <if test="userIdx != null and userIdx != ''">
+            AND u.userIdx = #{userIdx}
+        </if>
+        <if test="coinName != null and coinName != ''">
+            AND u.coinName = #{coinName}
+        </if>
+        <if test="partnerIdx != null and partnerIdx != ''">
+            AND m.parentsIdx = #{partnerIdx}
+        </if>
+        <if test="search != null and search != ''">
+            <if test="searchSelect == 'parentsIdx'">
+                AND m.${searchSelect} = #{search}
+                AND m.level = 'user'
+            </if>
+            <if test="searchSelect != 'parentsIdx'">
+                AND m.${searchSelect} LIKE CONCAT('%', #{search}, '%')
+            </if>
+        </if>
+        <if test="level != null and level != ''">
+            AND m.level = #{level}
+        </if>
+        <if test="ban == 'ban'">
+            AND m.isBan = 1
+        </if>
+    </select>
+    <update id="updateCoinStock">
+        update coinstock 
+        set ${kind} = #{value}
+        WHERE idx=#{idx}
+    </update>
+</mapper>

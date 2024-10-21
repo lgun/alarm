@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.mybatis.project">
+
+    <insert id="insertSise">        
+        INSERT INTO sise( 
+            coinNum
+            , sise
+            , sTime
+        ) VALUES (
+            #{coinNum}
+            , #{sise}
+            , #{sTime}
+        )
+    </insert>
+    <delete id="deleteOldSise">
+        <![CDATA[
+            DELETE FROM sise
+            WHERE TIMESTAMPDIFF(DAY, sTime, NOW()) >= 2;
+        ]]>
+    </delete>
+    <select id="selectSiseList" parameterType="Map" resultType="Map">
+        select *
+        from sise
+    </select>
+    <update id="updateAiTradeData">
+        update aitradedata 
+        set idx=idx
+        <if test="profit != null and profit != ''">
+            , profit = #{profit}
+        </if>
+        <if test="currentProfitRate != null and currentProfitRate != ''">
+            , currentProfitRate = #{currentProfitRate}
+        </if>
+        <if test="state != null and state != ''">
+            , state = #{state}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            , endDate = #{endDate}
+        </if>
+        <if test="lastTradeDate != null and lastTradeDate != ''">
+            , lastTradeDate = #{lastTradeDate}
+        </if>
+        WHERE idx=#{aidx} and userIdx=#{userIdx} and coinNum=#{coinNum} and state=0
+    </update>
+    
+</mapper>

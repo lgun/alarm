@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.mybatis.admin">
+
+    <select id="chatL" parameterType="Map" resultType="Map">
+        SELECT *
+        FROM chat
+        WHERE userIdx=#{userIdx}
+    </select>
+
+    <insert id="chatInsert" useGeneratedKeys="true" keyProperty="idx">
+        INSERT INTO chat
+            ( userIdx
+                , text
+                , time
+                , isManager
+            <if test="managerRead != null and managerRead != ''">
+                , managerRead
+            </if>
+            <if test="imageUrl != null and imageUrl != ''and imageUrl != 'null'">
+                , imageUrl
+            </if>
+            <if test="userRead != null and userRead != ''">
+                , userRead
+            </if>
+            )
+        VALUES ( #{userIdx}
+                , #{text}
+                , #{time}
+                , #{isManager}
+            <if test="managerRead != null and managerRead != ''">
+                , #{managerRead}
+            </if>
+            <if test="imageUrl != null and imageUrl != ''and imageUrl != 'null'">
+                , #{imageUrl}
+            </if>
+            <if test="userRead != null and userRead != ''">
+                , #{userRead}
+            </if>
+            )
+	</insert>
+
+    <update id="chatUpdateRead">
+        UPDATE chat 
+        SET idx = idx
+            <if test="managerRead != null and managerRead != ''">
+                , managerRead = #{managerRead}
+            </if>
+            <if test="userRead != null and userRead != ''">
+                , userRead = #{userRead}
+            </if>
+        WHERE userIdx=#{userIdx}
+    </update>
+
+    <delete id="chatDelete">
+        DELETE FROM chat
+        WHERE useridx=#{userIdx}
+    </delete>
+
+    <select id="chatCnt" parameterType="Map" resultType="Integer">
+        select count(*)
+        from chat c left join member m on m.idx= c.useridx
+        where c.managerRead = 0 and c.isManager = 0
+            <if test="parentsIdx != null and parentsIdx != ''">
+                and m.parentsIdx =#{parentsIdx}
+            </if>
+    </select>
+    <delete id="chatDeleteChoice">
+        DELETE FROM chat
+        WHERE useridx=#{userIdx} 
+            AND text = #{text} 
+            AND time= #{time}
+    </delete>
+    <delete id="chatDeleteChoiceIdx">
+        DELETE FROM chat
+        WHERE useridx=#{userIdx} 
+            AND idx=#{idx}
+    </delete>
+</mapper>

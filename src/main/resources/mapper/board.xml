@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.mybatis.board">
+
+ 
+
+    <insert id="insertVerificationLog">        
+        INSERT INTO verificationLog( 
+            userIdx
+            , type
+            , country
+            , img
+            , vdate
+        ) VALUES (
+            #{userIdx} 
+            , #{type} 
+            , #{country} 
+            , #{img} 
+            , now() 
+        )
+    </insert>
+
+    <select id="selectNewsList" parameterType="Map" resultType="Map">
+        SELECT *
+        FROM news
+        WHERE 1=1
+        order by ndate desc
+        limit 100
+    </select>
+
+    <select id="selectNoticeList" parameterType="Map" resultType="Map">
+        SELECT *
+        FROM notice
+        WHERE 1=1
+        ORDER BY 
+        CASE WHEN isImportant = 1 THEN 0 ELSE 1 END,
+        isImportant desc,
+        idx desc;
+    </select>
+    <select id="selectLatestNotice" parameterType="Map" resultType="Map">
+        SELECT *
+        FROM notice
+        WHERE isImportant = 1
+        order by idx desc
+        limit 1
+    </select>
+
+    <select id="selectNoticeDetail" parameterType="Map" resultType="Map">
+        select *
+        from notice
+        where idx = #{idx}
+    </select>
+
+    <insert id="insertNotice">
+        INSERT INTO notice
+            ( title
+                , contents
+                , isImportant
+                , ndate
+
+            )
+        VALUES ( #{title}
+                , #{contents}
+                , #{isImportant}
+                ,now()
+            )
+	</insert>
+
+    <update id="updateNotice">
+        update notice 
+        set title  = #{title},
+        contents = #{contents},
+        ndate = #{ndate},
+        isImportant = #{isImportant}
+        WHERE idx=#{idx}
+    </update>
+
+    <delete id="deleteNotice">
+            DELETE FROM notice
+            WHERE idx=#{idx}
+    </delete>
+</mapper>

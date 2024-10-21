@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.mybatis.asset">
+
+    <select id="partnersL" parameterType="Map" resultType="Map">
+        select *
+        from partners
+        where 1=1
+    </select>
+
+    <select id="assetL" parameterType="Map" resultType="Map">
+        select *
+            , (select name from partners where partners.idx=asset.partners) partnersName
+            , CASE
+                WHEN (m.parentsIdx = -1) THEN '본사'
+                ELSE (select id from member p where p.idx = m.parentsIdx)
+            END as parentId
+        from asset left join member m on m.idx=asset.userIdx
+        where 1=1
+            <if test="parentsIdx != null and parentsIdx != ''">
+                and m.parentsIdx = #{parentsIdx}
+            </if>
+
+            <if test="type != null and type != '' and type != 'all'">
+                and type = #{type}
+            </if>
+            <if test="userIdx != null and userIdx != ''">
+                and userIdx = #{userIdx}
+            </if>
+            <if test="stat != null and stat != ''">
+                and stat = #{stat}
+            </if>
+            <if test="sdate != null and sdate != ''">
+                and DATE(date1) between #{sdate} and #{edate}
+            </if>
+
+            <if test="test != 'test'">
+                and m.isTest != 1
+            </if>
+
+            <if test="search != null and search != ''">
+                <if test="searchSelect == 'm.parentsIdx'">
+                    and ${searchSelect} = #{search}
+                </if>
+                <if test="searchSelect != 'm.parentsIdx'">
+                    and ${searchSelect} like concat('%',#{search},'%')
+                </if>
+            </if>
+        order by date1 desc
+        LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+    </select>
+    <select id="assetT" parameterType="Map" resultType="Integer">
+        select count(*)
+        from asset left join member m on m.idx=asset.userIdx
+        where 1=1
+            <if test="parentsIdx != null and parentsIdx != ''">
+                and m.parentsIdx = #{parentsIdx}
+            </if>
+
+            <if test="type != null and type != '' and type != 'all'">
+                and type = #{type}
+            </if>
+            <if test="userIdx != null and userIdx != ''">
+                and userIdx = #{userIdx}
+            </if>
+            <if test="stat != null and stat != ''">
+                and stat = #{stat}
+            </if>
+            <if test="alarm != null and alarm != ''">
+                and alarm = #{alarm}
+            </if>
+            <if test="sdate != null and sdate != ''">
+                and DATE(date1) between #{sdate} and #{edate}
+            </if>
+
+            <if test="test != 'test'">
+                and m.isTest != 1
+            </if>
+
+            <if test="search != null and search != ''">
+                <if test="searchSelect == 'm.parentsIdx'">
+                    and ${searchSelect} = #{search}
+                </if>
+                <if test="searchSelect != 'm.parentsIdx'">
+                    and ${searchSelect} like concat('%',#{search},'%')
+                </if>
+            </if>
+    </select>
+
+    <select id="assetC" parameterType="Map" resultType="Map">
+        SELECT *
+        FROM asset
+        where idx=#{idx}
+        limit 1
+    </select>
+
+    <select id="assetSum" parameterType="Map" resultType="Map">
+        select ifnull(sum(usdt), 0) usdt, ifnull(sum(krw), 0) krw
+        from asset left join member m on m.idx=asset.userIdx
+        where type = #{type} and stat = 1
+            <if test="parentsIdx != null and parentsIdx != ''">
+                and m.parentsIdx = #{parentsIdx}
+            </if>
+            
+            <if test="userIdx != null and userIdx != ''">
+                and userIdx = #{userIdx}
+            </if>
+            <if test="sdate != null and sdate != ''">
+                and DATE(date1) between #{sdate} and #{edate}
+            </if>
+
+            <if test="search != null and search != ''">
+                <if test="searchSelect == 'm.parentsIdx'">
+                    and ${searchSelect} = #{search}
+                </if>
+                <if test="searchSelect != 'm.parentsIdx'">
+                    and ${searchSelect} like concat('%',#{search},'%')
+                </if>
+            </if>
+    </select>
+
+    <insert id="assetInsert">        
+        INSERT INTO asset
+				( type
+                    , userIdx
+                <if test="usdt != null and usdt != ''">
+                    , usdt
+                </if>
+                <if test="krw != null and krw != ''">
+                    , krw
+                </if>
+
+                <if test="bank != null and bank != ''">
+                    , bank
+                </if>
+                <if test="account != null and account != ''">
+                    , account
+                </if>
+                <if test="aname != null and aname != ''">
+                    , aname
+                </if>
+
+                <if test="partners != null and partners != ''">
+                    , partners
+                </if>
+                    , date1
+                 )
+			VALUES ( #{type}
+                    , #{userIdx}
+                <if test="usdt != null and usdt != ''">
+                    , #{usdt}
+                </if>
+                <if test="krw != null and krw != ''">
+                    , #{krw}
+                </if>
+
+                <if test="bank != null and bank != ''">
+                    , #{bank}
+                </if>
+                <if test="account != null and account != ''">
+                    , #{account}
+                </if>
+                <if test="aname != null and aname != ''">
+                    , #{aname}
+                </if>
+
+                <if test="partners != null and partners != ''">
+                    , #{partners}
+                </if>
+                    , now()
+                 )
+    </insert>
+
+    <update id="assetUpdateStat">
+        update asset left join member m on m.idx=asset.userIdx
+        set asset.stat = #{stat}
+            <if test="changeFutures != null and changeFutures != ''">
+                , asset.usdt = #{changeFutures}
+            </if>
+            , asset.date2 = now()
+        WHERE asset.idx=#{idx}
+            <if test="parentsIdx != null and parentsIdx != ''">
+                and m.parentsIdx = #{parentsIdx}
+            </if>
+    </update>
+     <update id="assetUpdateAlarm">
+        update asset
+        set asset.alarm = #{alarm}
+        WHERE asset.idx=#{idx}
+    </update>
+
+    <select id="selectFuturesKindTotal" parameterType="map" resultType="map">
+        SELECT 
+            COALESCE(SUM(futures), 0) as totalFutures
+        FROM 
+            futureslog
+        WHERE 
+            userIdx = #{userIdx}
+            <if test="kind != null and kind != ''">
+                AND kind = #{kind}
+            </if>
+            <if test="netProfit != null and netProfit != ''">
+                and (kind=1 or kind=2)
+            </if>
+            <if test="day != null and day != ''">
+                AND gdate <![CDATA[ > ]]> DATE_SUB(NOW(), INTERVAL #{day} DAY)
+            </if>
+    </select>
+
+    <select id="selectLastWithdrawalInfo" parameterType="Map" resultType="Map">
+        select *
+        from asset
+        where type = "withdrawal" and userIdx=#{userIdx}
+        order by idx desc
+        limit 1
+    </select>
+</mapper>
