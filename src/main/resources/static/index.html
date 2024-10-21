@@ -166,28 +166,15 @@
         var isRunning = false;
         var currentQueueIndex = -1;
         var audio = new Audio('/sound/alarm.mp3');
-        var audioContext = null;
-        var audioBuffer = null;
+        audio.loop = true;
 
         function initAudio() {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            fetch('/sound/alarm.mp3')
-                .then(response => response.arrayBuffer())
-                .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-                .then(decodedAudio => {
-                    audioBuffer = decodedAudio;
-                });
-        }
-
-        function playSound() {
-            if (audioContext && audioBuffer) {
-                var source = audioContext.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(audioContext.destination);
-                source.start(0);
-            } else {
-                audio.play();
-            }
+            audio.play().then(() => {
+                audio.pause();
+                audio.currentTime = 0;
+            }).catch(error => {
+                console.error('오디오 초기화 실패:', error);
+            });
         }
 
         function updateTimerDisplay(time) {
@@ -245,6 +232,8 @@
                 isRunning = false;
                 currentQueueIndex = -1;
                 $('#queueList li').removeClass('active');
+                audio.pause();
+                audio.currentTime = 0;
                 alert('모든 알람이 종료되었습니다.');
                 return;
             }
@@ -256,9 +245,13 @@
             function countdown() {
                 updateTimerDisplay(time);
                 if (time <= 0) {
-                    playSound();
-                    currentQueueIndex++;
-                    setTimeout(runQueue, 1000); // 1초 후 다음 큐 실행
+                    audio.play();
+                    setTimeout(() => {
+                        audio.pause();
+                        audio.currentTime = 0;
+                        currentQueueIndex++;
+                        runQueue();
+                    }, 3000); // 3초 동안 알람음 재생
                 } else {
                     time--;
                     setTimeout(countdown, 1000);
@@ -272,7 +265,8 @@
             if (!isRunning && queue.length > 0) {
                 isRunning = true;
                 currentQueueIndex = 0;
-                initAudio();  // 오디오 초기화
+                initAudio();
+                $('#volumeWarning').show();
                 runQueue();
             }
         });
@@ -284,18 +278,13 @@
             updateTimerDisplay(currentTime);
             isRunning = false;
             currentQueueIndex = -1;
+            audio.pause();
+            audio.currentTime = 0;
         });
 
-        // 페이지 로드 시 오디오 컨텍스트 초기화
-        $(window).on('load', function() {
+        // 페이지 내의 모든 사용자 상호작용에서 오디오 초기화 시도
+        $('body').on('click touchstart', function() {
             initAudio();
-        });
-
-        // iOS에서 오디오 재생을 위한 추가 처리
-        $('body').on('touchstart', function() {
-            if (audioContext && audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
         });
     });
     </script>
