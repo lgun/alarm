@@ -18,8 +18,8 @@ public class MainController {
 
     @GetMapping("/alarm2")
     public String alarm2(HttpServletRequest request, ModelMap model){
-        System.out.println("alarm 페이지 접근2");
-        return "forward:/WEB-INF/jsp/user/alarm.jsp";
+        System.out.println("alarm 페이지 접근");
+        return "forward:/META-INF/resources/WEB-INF/jsp/user/alarm.jsp";
     }
 
     @GetMapping("/alarm3")
