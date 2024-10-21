@@ -166,6 +166,29 @@
         var isRunning = false;
         var currentQueueIndex = -1;
         var audio = new Audio('/sound/alarm.mp3');
+        var audioContext = null;
+        var audioBuffer = null;
+
+        function initAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            fetch('/sound/alarm.mp3')
+                .then(response => response.arrayBuffer())
+                .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+                .then(decodedAudio => {
+                    audioBuffer = decodedAudio;
+                });
+        }
+
+        function playSound() {
+            if (audioContext && audioBuffer) {
+                var source = audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioContext.destination);
+                source.start(0);
+            } else {
+                audio.play();
+            }
+        }
 
         function updateTimerDisplay(time) {
             var minutes = Math.floor(time / 60);
@@ -233,7 +256,7 @@
             function countdown() {
                 updateTimerDisplay(time);
                 if (time <= 0) {
-                    audio.play();
+                    playSound();
                     currentQueueIndex++;
                     setTimeout(runQueue, 1000); // 1초 후 다음 큐 실행
                 } else {
@@ -249,6 +272,7 @@
             if (!isRunning && queue.length > 0) {
                 isRunning = true;
                 currentQueueIndex = 0;
+                initAudio();  // 오디오 초기화
                 runQueue();
             }
         });
@@ -260,6 +284,18 @@
             updateTimerDisplay(currentTime);
             isRunning = false;
             currentQueueIndex = -1;
+        });
+
+        // 페이지 로드 시 오디오 컨텍스트 초기화
+        $(window).on('load', function() {
+            initAudio();
+        });
+
+        // iOS에서 오디오 재생을 위한 추가 처리
+        $('body').on('touchstart', function() {
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
         });
     });
     </script>
