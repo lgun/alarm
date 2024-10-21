@@ -11,8 +11,25 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class MainController {
     
     @GetMapping("/alarm")
-    public String main(HttpServletRequest request, ModelMap model){
+    public String alarm(HttpServletRequest request, ModelMap model){
         System.out.println("alarm 페이지 접근");
         return "user/alarm";
+    }
+
+    @GetMapping("/alarm2")
+    public String alarm2(HttpServletRequest request, ModelMap model){
+        System.out.println("alarm 페이지 접근2");
+        return "forward:/WEB-INF/jsp/user/alarm.jsp";
+    }
+
+    @GetMapping("/alarm3")
+    public String alarm3(HttpServletRequest request, ModelMap model){
+        System.out.println("alarm 페이지 접근3");
+        return "user/alarm.jsp";
+    }
+    @GetMapping("/alarm4")
+    public String alarm4(HttpServletRequest request, ModelMap model){
+        System.out.println("alarm 페이지 접근4");
+        return "/user/alarm";
     }
 }
